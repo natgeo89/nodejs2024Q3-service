@@ -68,4 +68,8 @@ export class TrackService {
 
     this.tracks = currentTracks.filter((track) => track.id !== id);
   }
+
+  async set(tracks: Track[]) {
+    this.tracks = tracks;
+  }
 }
