@@ -86,4 +86,8 @@ export class AlbumService {
 
     this.trackService.set(updatedTracks);
   }
+
+  async set(albums: Album[]) {
+    this.albums = albums;
+  }
 }
