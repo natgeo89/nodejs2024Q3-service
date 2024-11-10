@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
   UnprocessableEntityException,
@@ -13,6 +15,7 @@ export class FavoritesService {
   constructor(
     private readonly trackService: TrackService,
     private readonly albumService: AlbumService,
+    @Inject(forwardRef(() => ArtistService))
     private readonly artistService: ArtistService,
   ) {}
 
@@ -24,6 +27,18 @@ export class FavoritesService {
 
   async findAll() {
     return await this.favorites;
+  }
+
+  async findAllArtists() {
+    return await this.favorites.artists;
+  }
+
+  async findAllAlbums() {
+    return await this.favorites.albums;
+  }
+
+  async findAllTracks() {
+    return await this.favorites.tracks;
   }
 
   async setFavArtists(newArtists: Artist[]) {

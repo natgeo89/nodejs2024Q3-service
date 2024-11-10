@@ -1,16 +1,24 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
 import { Artist } from '../interfaces';
 import { TrackService } from '../track/track.service';
 import { AlbumService } from '../album/album.service';
+import { FavoritesService } from '../favorites/favorites.service';
 
 @Injectable()
 export class ArtistService {
   constructor(
     private readonly trackService: TrackService,
     private readonly albumService: AlbumService,
+    @Inject(forwardRef(() => FavoritesService))
+    private readonly favoritesService: FavoritesService,
   ) {}
 
   private artists: Artist[] = [];
@@ -53,7 +61,7 @@ export class ArtistService {
 
     const artistToReturn: Artist = { ...artist, ...updateArtistDto };
 
-    this.artists = currentArtists.map((artist) => {
+    const updatedArtists = currentArtists.map((artist) => {
       if (artist.id === id) {
         return artistToReturn;
       }
@@ -61,19 +69,27 @@ export class ArtistService {
       return artist;
     });
 
+    this.setArtists(updatedArtists);
+
     return artistToReturn;
   }
 
-  async remove(id: string) {
+  async remove(artistId: string) {
     const currentArtists = await this.findAll();
 
-    const artistToDelete = currentArtists.find((artist) => artist.id === id);
+    const artistToDelete = currentArtists.find(
+      (artist) => artist.id === artistId,
+    );
 
     if (!artistToDelete) {
       throw new NotFoundException();
     }
 
-    this.artists = currentArtists.filter((artist) => artist.id !== id);
+    const updatedArtists = currentArtists.filter(
+      (artist) => artist.id !== artistId,
+    );
+
+    this.setArtists(updatedArtists);
 
     const currentTracks = await this.trackService.findAll(); // replace with findMany() where deleted artistId
 
@@ -104,5 +120,21 @@ export class ArtistService {
     });
 
     this.albumService.set(updatedAlbums);
+
+    const favArtists = await this.favoritesService.findAllArtists();
+
+    const favArtist = favArtists.find((artist) => artist.id === artistId);
+
+    if (favArtist) {
+      const updatedFavArtists = favArtists.filter(
+        (artist) => artist.id !== artistId,
+      );
+
+      this.favoritesService.setFavArtists(updatedFavArtists);
+    }
+  }
+
+  async setArtists(artists: Artist[]) {
+    this.artists = artists;
   }
 }
