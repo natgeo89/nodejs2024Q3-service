@@ -1,13 +1,23 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
 import { Album } from '../interfaces';
 import { TrackService } from '../track/track.service';
+import { FavoritesService } from '../favorites/favorites.service';
 
 @Injectable()
 export class AlbumService {
-  constructor(private readonly trackService: TrackService) {}
+  constructor(
+    private readonly trackService: TrackService,
+    @Inject(forwardRef(() => FavoritesService))
+    private readonly favoritesService: FavoritesService,
+  ) {}
 
   private albums: Album[] = [];
 
@@ -49,7 +59,7 @@ export class AlbumService {
 
     const albumToReturn: Album = { ...album, ...updateAlbumDto };
 
-    this.albums = currentAlbums.map((album) => {
+    const updatedAlbums = currentAlbums.map((album) => {
       if (album.id === id) {
         return albumToReturn;
       }
@@ -57,19 +67,23 @@ export class AlbumService {
       return album;
     });
 
+    this.setAlbums(updatedAlbums);
+
     return albumToReturn;
   }
 
-  async remove(id: string) {
+  async remove(albumId: string) {
     const currentAlbums = await this.findAll();
 
-    const albumToDelete = currentAlbums.find((album) => album.id === id);
+    const albumToDelete = currentAlbums.find((album) => album.id === albumId);
 
     if (!albumToDelete) {
       throw new NotFoundException();
     }
 
-    this.albums = currentAlbums.filter((album) => album.id !== id);
+    const updatedAlbums = currentAlbums.filter((album) => album.id !== albumId);
+
+    this.setAlbums(updatedAlbums);
 
     const currentTracks = await this.trackService.findAll(); // replace with findMany() where deleted albumId
 
@@ -85,9 +99,21 @@ export class AlbumService {
     });
 
     this.trackService.set(updatedTracks);
+
+    const favAlbums = await this.favoritesService.findAllAlbums();
+
+    const favAlbum = favAlbums.find((album) => album.id === albumId);
+
+    if (favAlbum) {
+      const updatedFavAlbums = favAlbums.filter(
+        (album) => album.id !== albumId,
+      );
+
+      this.favoritesService.setFavAlbums(updatedFavAlbums);
+    }
   }
 
-  async set(albums: Album[]) {
+  async setAlbums(albums: Album[]) {
     this.albums = albums;
   }
 }

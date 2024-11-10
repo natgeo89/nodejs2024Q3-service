@@ -119,7 +119,7 @@ export class ArtistService {
       return track;
     });
 
-    this.albumService.set(updatedAlbums);
+    this.albumService.setAlbums(updatedAlbums);
 
     const favArtists = await this.favoritesService.findAllArtists();
 
