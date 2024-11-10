@@ -43,7 +43,7 @@ export class UserService {
     const user = currentUsers.find((user) => user.id === id);
 
     if (!user) {
-      throw new NotFoundException();
+      throw new NotFoundException('User not found');
     }
 
     const userToReturn: UserWithoutPassword = {

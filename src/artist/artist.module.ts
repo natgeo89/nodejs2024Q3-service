@@ -8,5 +8,6 @@ import { AlbumModule } from '../album/album.module';
   controllers: [ArtistController],
   providers: [ArtistService],
   imports: [TrackModule, AlbumModule],
+  exports: [ArtistService],
 })
 export class ArtistModule {}
