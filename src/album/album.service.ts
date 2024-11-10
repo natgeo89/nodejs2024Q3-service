@@ -14,6 +14,7 @@ import { FavoritesService } from '../favorites/favorites.service';
 @Injectable()
 export class AlbumService {
   constructor(
+    @Inject(forwardRef(() => TrackService))
     private readonly trackService: TrackService,
     @Inject(forwardRef(() => FavoritesService))
     private readonly favoritesService: FavoritesService,
@@ -98,7 +99,7 @@ export class AlbumService {
       return track;
     });
 
-    this.trackService.set(updatedTracks);
+    this.trackService.setTracks(updatedTracks);
 
     const favAlbums = await this.favoritesService.findAllAlbums();
 

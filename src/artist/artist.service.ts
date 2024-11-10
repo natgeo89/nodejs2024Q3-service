@@ -15,7 +15,9 @@ import { FavoritesService } from '../favorites/favorites.service';
 @Injectable()
 export class ArtistService {
   constructor(
+    @Inject(forwardRef(() => TrackService))
     private readonly trackService: TrackService,
+    @Inject(forwardRef(() => AlbumService))
     private readonly albumService: AlbumService,
     @Inject(forwardRef(() => FavoritesService))
     private readonly favoritesService: FavoritesService,
@@ -104,7 +106,7 @@ export class ArtistService {
       return track;
     });
 
-    this.trackService.set(updatedTracks);
+    this.trackService.setTracks(updatedTracks);
 
     const currentAlbums = await this.albumService.findAll(); // replace with findMany() where deleted artistId
 

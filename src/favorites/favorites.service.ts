@@ -13,6 +13,7 @@ import { ArtistService } from '../artist/artist.service';
 @Injectable()
 export class FavoritesService {
   constructor(
+    @Inject(forwardRef(() => TrackService))
     private readonly trackService: TrackService,
     @Inject(forwardRef(() => AlbumService))
     private readonly albumService: AlbumService,

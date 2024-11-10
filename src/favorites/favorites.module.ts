@@ -9,7 +9,7 @@ import { ArtistModule } from '../artist/artist.module';
   controllers: [FavoritesController],
   providers: [FavoritesService],
   imports: [
-    TrackModule,
+    forwardRef(() => TrackModule),
     forwardRef(() => AlbumModule),
     forwardRef(() => ArtistModule),
   ],
