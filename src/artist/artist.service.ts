@@ -58,9 +58,14 @@ export class ArtistService {
       throw new NotFoundException();
     }
 
-    const artistToReturn: Artist = { ...artistPrisma, ...updateArtistDto };
+    const updatedArtistPrisma = await this.prisma.artist.update({
+      data: updateArtistDto,
+      where: {
+        id: id,
+      },
+    });
 
-    return artistToReturn;
+    return updatedArtistPrisma;
   }
 
   async remove(artistId: string) {
@@ -91,20 +96,20 @@ export class ArtistService {
 
     this.trackService.setTracks(updatedTracks);
 
-    const currentAlbums = await this.albumService.findAll(); // replace with findMany() where deleted artistId
+    // const currentAlbums = await this.albumService.findAll(); // replace with findMany() where deleted artistId
 
-    const updatedAlbums = currentAlbums.map((track) => {
-      if (track.artistId === artistToDelete.id) {
-        return {
-          ...track,
-          artistId: null,
-        };
-      }
+    // const updatedAlbums = currentAlbums.map((track) => {
+    //   if (track.artistId === artistToDelete.id) {
+    //     return {
+    //       ...track,
+    //       artistId: null,
+    //     };
+    //   }
 
-      return track;
-    });
+    //   return track;
+    // });
 
-    this.albumService.setAlbums(updatedAlbums);
+    // this.albumService.setAlbums(updatedAlbums);
 
     const favArtists = await this.favoritesService.findAllArtists();
 

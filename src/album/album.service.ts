@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import {
   forwardRef,
   Inject,
@@ -7,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { CreateAlbumDto } from './dto/create-album.dto';
 import { UpdateAlbumDto } from './dto/update-album.dto';
-import { Album } from '../interfaces';
 import { TrackService } from '../track/track.service';
 import { FavoritesService } from '../favorites/favorites.service';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class AlbumService {
@@ -18,103 +17,91 @@ export class AlbumService {
     private readonly trackService: TrackService,
     @Inject(forwardRef(() => FavoritesService))
     private readonly favoritesService: FavoritesService,
+    private readonly prisma: PrismaService,
   ) {}
 
-  private albums: Album[] = [];
-
   async create(createAlbumDto: CreateAlbumDto) {
-    const newAlbum: Album = {
-      ...createAlbumDto,
-      id: randomUUID(),
-    };
+    const prismaCreatedArtist = await this.prisma.album.create({
+      data: createAlbumDto,
+    });
 
-    this.albums.push(newAlbum);
-
-    return newAlbum;
+    return prismaCreatedArtist;
   }
 
   async findAll() {
-    return this.albums;
+    const albumsPrisma = await this.prisma.album.findMany();
+    return albumsPrisma;
   }
 
   async findOne(id: string) {
-    const currentAlbums = await this.findAll();
+    const albumPrisma = await this.prisma.album.findUnique({
+      where: { id: id },
+    });
 
-    const album = currentAlbums.find((album) => album.id === id);
-
-    if (!album) {
+    if (!albumPrisma) {
       throw new NotFoundException();
     }
 
-    return album;
+    return albumPrisma;
   }
 
   async update(id: string, updateAlbumDto: UpdateAlbumDto) {
-    const currentAlbums = await this.findAll();
+    const albumPrisma = await this.prisma.album.findUnique({
+      where: { id: id },
+    });
 
-    const album = currentAlbums.find((album) => album.id === id);
-
-    if (!album) {
+    if (!albumPrisma) {
       throw new NotFoundException();
     }
 
-    const albumToReturn: Album = { ...album, ...updateAlbumDto };
-
-    const updatedAlbums = currentAlbums.map((album) => {
-      if (album.id === id) {
-        return albumToReturn;
-      }
-
-      return album;
+    const updatedArtistPrisma = await this.prisma.album.update({
+      data: updateAlbumDto,
+      where: {
+        id: id,
+      },
     });
 
-    this.setAlbums(updatedAlbums);
-
-    return albumToReturn;
+    return updatedArtistPrisma;
   }
 
   async remove(albumId: string) {
-    const currentAlbums = await this.findAll();
-
-    const albumToDelete = currentAlbums.find((album) => album.id === albumId);
+    const albumToDelete = await this.findOne(albumId);
 
     if (!albumToDelete) {
       throw new NotFoundException();
     }
 
-    const updatedAlbums = currentAlbums.filter((album) => album.id !== albumId);
-
-    this.setAlbums(updatedAlbums);
-
-    const currentTracks = await this.trackService.findAll(); // replace with findMany() where deleted albumId
-
-    const updatedTracks = currentTracks.map((track) => {
-      if (track.albumId === albumToDelete.id) {
-        return {
-          ...track,
-          albumId: null,
-        };
-      }
-
-      return track;
+    await this.prisma.album.delete({
+      where: {
+        id: albumToDelete.id,
+      },
     });
 
-    this.trackService.setTracks(updatedTracks);
+    // const currentTracks = await this.trackService.findAll(); // replace with findMany() where deleted albumId
 
-    const favAlbums = await this.favoritesService.findAllAlbums();
+    // const updatedTracks = currentTracks.map((track) => {
+    //   if (track.albumId === albumToDelete.id) {
+    //     return {
+    //       ...track,
+    //       albumId: null,
+    //     };
+    //   }
 
-    const favAlbum = favAlbums.find((album) => album.id === albumId);
+    //   return track;
+    // });
 
-    if (favAlbum) {
-      const updatedFavAlbums = favAlbums.filter(
-        (album) => album.id !== albumId,
-      );
+    // this.trackService.setTracks(updatedTracks);
 
-      this.favoritesService.setFavAlbums(updatedFavAlbums);
-    }
-  }
+    // const favAlbums = await this.favoritesService.findAllAlbums();
 
-  async setAlbums(albums: Album[]) {
-    this.albums = albums;
+    // const favAlbum = favAlbums.find((album) => album.id === albumId);
+
+    // if (favAlbum) {
+    //   const updatedFavAlbums = favAlbums.filter(
+    //     (album) => album.id !== albumId,
+    //   );
+
+    //   this.favoritesService.setFavAlbums(updatedFavAlbums);
+    // }
   }
 }
