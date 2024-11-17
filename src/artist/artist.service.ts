@@ -1,21 +1,11 @@
-import {
-  forwardRef,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateArtistDto } from './dto/create-artist.dto';
 import { UpdateArtistDto } from './dto/update-artist.dto';
-import { FavoritesService } from '../favorites/favorites.service';
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class ArtistService {
-  constructor(
-    @Inject(forwardRef(() => FavoritesService))
-    private readonly favoritesService: FavoritesService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createArtistDto: CreateArtistDto) {
     const prismaCreatedArtist = await this.prisma.artist.create({
@@ -73,17 +63,5 @@ export class ArtistService {
         id: artistToDelete.id,
       },
     });
-
-    const favArtists = await this.favoritesService.findAllArtists();
-
-    const favArtist = favArtists.find((artist) => artist.id === artistId);
-
-    if (favArtist) {
-      const updatedFavArtists = favArtists.filter(
-        (artist) => artist.id !== artistId,
-      );
-
-      this.favoritesService.setFavArtists(updatedFavArtists);
-    }
   }
 }
