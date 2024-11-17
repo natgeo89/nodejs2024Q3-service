@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import {
   ForbiddenException,
   Injectable,
@@ -6,98 +5,110 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdatePasswordDto } from './dto/update-user.dto';
-import { User, UserWithoutPassword } from '../interfaces';
+import { UserWithoutPassword } from '../interfaces';
+import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class UserService {
-  private users: User[] = [];
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
-    const currentTimestamp = Date.now();
+    const prismaCreatedUser = await this.prisma.user.create({
+      data: { login: createUserDto.login, password: createUserDto.password },
+    });
 
-    const userWithoutPassword: UserWithoutPassword = {
-      id: randomUUID(),
-      login: createUserDto.login,
-      version: 1,
-      createdAt: currentTimestamp,
-      updatedAt: currentTimestamp,
+    const updatedUser: UserWithoutPassword = {
+      id: prismaCreatedUser.id,
+      login: prismaCreatedUser.login,
+      version: prismaCreatedUser.version,
+      createdAt: prismaCreatedUser.createdAt.getTime(),
+      updatedAt: prismaCreatedUser.updatedAt.getTime(),
     };
 
-    const newUser: User = {
-      ...userWithoutPassword,
-      password: createUserDto.password,
-    };
-
-    this.users.push(newUser);
-
-    return userWithoutPassword;
+    return updatedUser;
   }
 
   async findAll() {
-    return this.users;
+    const usersPrisma = await this.prisma.user.findMany();
+
+    const updatedUsers: UserWithoutPassword[] = usersPrisma.map((user) => {
+      return {
+        id: user.id,
+        login: user.login,
+        version: user.version,
+        createdAt: user.createdAt.getTime(),
+        updatedAt: user.updatedAt.getTime(),
+      };
+    });
+
+    return updatedUsers;
   }
 
   async findOne(id: string) {
-    const currentUsers = await this.findAll();
+    const userPrisma = await this.prisma.user.findUnique({
+      where: { id: id },
+    });
 
-    const user = currentUsers.find((user) => user.id === id);
-
-    if (!user) {
+    if (!userPrisma) {
       throw new NotFoundException('User not found');
     }
 
     const userToReturn: UserWithoutPassword = {
-      id: user.id,
-      login: user.login,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      version: user.version,
+      id: userPrisma.id,
+      login: userPrisma.login,
+      createdAt: userPrisma.createdAt.getTime(),
+      updatedAt: userPrisma.updatedAt.getTime(),
+      version: userPrisma.version,
     };
 
     return userToReturn;
   }
 
   async update(id: string, updatePasswordDto: UpdatePasswordDto) {
-    const currentUsers = await this.findAll();
+    const userPrisma = await this.prisma.user.findUnique({
+      where: { id: id },
+    });
 
-    const user = currentUsers.find((user) => user.id === id);
-
-    if (!user) {
+    if (!userPrisma) {
       throw new NotFoundException();
     }
 
-    if (user.password !== updatePasswordDto.oldPassword) {
+    if (userPrisma.password !== updatePasswordDto.oldPassword) {
       throw new ForbiddenException();
     }
 
-    const userToReturn: UserWithoutPassword = {
-      id: user.id,
-      login: user.login,
-      createdAt: user.createdAt,
-      updatedAt: Date.now(),
-      version: user.version + 1,
-    };
-
-    this.users = currentUsers.map((user) => {
-      if (user.id === id) {
-        return { ...userToReturn, password: updatePasswordDto.newPassword };
-      }
-
-      return user;
+    const updatedUserPrisma = await this.prisma.user.update({
+      data: {
+        password: updatePasswordDto.newPassword,
+        version: userPrisma.version + 1,
+      },
+      where: {
+        id: id,
+      },
     });
+
+    const userToReturn: UserWithoutPassword = {
+      id: updatedUserPrisma.id,
+      login: updatedUserPrisma.login,
+      createdAt: updatedUserPrisma.createdAt.getTime(),
+      updatedAt: updatedUserPrisma.updatedAt.getTime(),
+      version: updatedUserPrisma.version,
+    };
 
     return userToReturn;
   }
 
   async remove(id: string) {
-    const currentUsers = await this.findAll();
-
-    const userToDelete = currentUsers.find((user) => user.id === id);
+    const userToDelete = await this.findOne(id);
 
     if (!userToDelete) {
       throw new NotFoundException();
     }
 
-    this.users = currentUsers.filter((user) => user.id !== id);
+    await this.prisma.user.delete({
+      where: {
+        id: id,
+      },
+    });
   }
 }
