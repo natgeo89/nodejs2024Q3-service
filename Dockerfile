@@ -8,4 +8,4 @@ COPY package-lock.json .
 RUN npm i --force && npm cache clean --force
 COPY . .
 
-CMD ["npm", "run", "start:dev"]
+CMD ["npm", "run", "docker:start:dev"]
