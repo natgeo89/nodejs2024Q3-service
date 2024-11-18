@@ -14,7 +14,33 @@ git clone {repository URL}
 ## Installing NPM modules
 
 ```
-npm install
+npm ci
+```
+
+## Running docker container
+
+```
+docker-compose up
+```
+Wait several minutes untill you will see `server-app` logs:
+```
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/album/:id, PUT} route +1ms
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/album/:id, DELETE} route +2ms
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RoutesResolver] FavoritesController {/favs}: +1ms
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs, GET} route +0ms
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/track/:id, POST} route +1ms
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/track/:id, DELETE} route +1ms        
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/album/:id, POST} route +0ms
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/album/:id, DELETE} route +1ms        
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/artist/:id, POST} route +0ms
+server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/artist/:id, DELETE} route +0ms       
+server-app  | [Nest] 123  - 11/18/2024, 4:57:25 PM     LOG [NestApplication] Nest application successfully started +80ms  
+```
+
+## After it successfully install and run all images we can check tests, that should be passed
+
+```
+npm run test
 ```
 
 ## Running application
@@ -24,7 +50,7 @@ npm start
 ```
 
 After starting the app on port (4000 as default) you can open
-in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
+in your browser OpenAPI documentation by typing http://localhost:4000/docs/.
 For more information about OpenAPI/Swagger please visit https://swagger.io/.
 
 ## Testing
