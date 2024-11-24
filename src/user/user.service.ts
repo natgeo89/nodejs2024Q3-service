@@ -1,3 +1,4 @@
+import * as bcrypt from 'bcrypt';
 import {
   ForbiddenException,
   Injectable,
@@ -13,8 +14,13 @@ export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createUserDto: CreateUserDto) {
+    const hashedPassword = await bcrypt.hash(
+      createUserDto.password,
+      Number(process.env.CRYPT_SALT),
+    );
+
     const prismaCreatedUser = await this.prisma.user.create({
-      data: { login: createUserDto.login, password: createUserDto.password },
+      data: { login: createUserDto.login, password: hashedPassword },
     });
 
     const updatedUser: UserWithoutPassword = {
@@ -85,7 +91,12 @@ export class UserService {
       throw new NotFoundException();
     }
 
-    if (userPrisma.password !== updatePasswordDto.oldPassword) {
+    const isPasswordMatches = await bcrypt.compare(
+      updatePasswordDto.oldPassword,
+      userPrisma.password,
+    );
+
+    if (!isPasswordMatches) {
       throw new ForbiddenException();
     }
 
