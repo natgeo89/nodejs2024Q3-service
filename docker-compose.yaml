@@ -1,17 +1,17 @@
 services:
-  server-app:
-    image: natgeo89/home_library_api
-    restart: always
-    depends_on:
-      - db
-    container_name: server-app
-    environment:
-      DATABASE_URL: ${DATABASE_URL}
-    ports:
-      - ${PORT}:${PORT}
-    volumes:
-      - ./src:/server-app/src
-      - /server-app/node_modules
+  # server-app:
+  #   image: natgeo89/home_library_api
+  #   restart: always
+  #   depends_on:
+  #     - db
+  #   container_name: server-app
+  #   environment:
+  #     DATABASE_URL: ${DATABASE_URL}
+  #   ports:
+  #     - ${PORT}:${PORT}
+  #   volumes:
+  #     - ./src:/server-app/src
+  #     - /server-app/node_modules
 
   db:
     image: postgres
@@ -20,7 +20,7 @@ services:
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
-      - database_data:/var/lib/postgresql/data
+      - ./database_data:/var/lib/postgresql/data
     restart: always
 volumes:
   database_data:

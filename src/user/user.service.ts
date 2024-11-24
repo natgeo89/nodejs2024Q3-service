@@ -44,6 +44,18 @@ export class UserService {
     return updatedUsers;
   }
 
+  async findOneByName(name: string) {
+    const userPrisma = await this.prisma.user.findFirst({
+      where: { login: name },
+    });
+
+    if (!userPrisma) {
+      throw new NotFoundException('User not found');
+    }
+
+    return userPrisma;
+  }
+
   async findOne(id: string) {
     const userPrisma = await this.prisma.user.findUnique({
       where: { id: id },
