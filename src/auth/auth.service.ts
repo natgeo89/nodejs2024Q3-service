@@ -1,5 +1,9 @@
 import * as bcrypt from 'bcrypt';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
 
@@ -27,9 +31,47 @@ export class AuthService {
     if (!isPasswordMatches) {
       throw new UnauthorizedException();
     }
-    const payload = { sub: user.id, username: user.login };
+
+    const payload = { userId: user.id, login: user.login };
+
     return {
-      accessToken: await this.jwtService.signAsync(payload),
+      accessToken: await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET_KEY,
+        expiresIn: process.env.TOKEN_EXPIRE_TIME,
+      }),
+      refreshToken: await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
+        expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME,
+      }),
     };
+  }
+
+  async refresh(refrestToken: string) {
+    if (refrestToken === undefined) {
+      throw new UnauthorizedException();
+    }
+
+    try {
+      const { userId } = await this.jwtService.verifyAsync(refrestToken, {
+        secret: process.env.JWT_SECRET_REFRESH_KEY,
+      });
+
+      const user = await this.userService.findOne(userId);
+
+      const updatedPayload = { userId: user.id, login: user.login };
+
+      return {
+        accessToken: await this.jwtService.signAsync(updatedPayload, {
+          secret: process.env.JWT_SECRET_KEY,
+          expiresIn: process.env.TOKEN_EXPIRE_TIME,
+        }),
+        refreshToken: await this.jwtService.signAsync(updatedPayload, {
+          secret: process.env.JWT_SECRET_REFRESH_KEY,
+          expiresIn: process.env.TOKEN_REFRESH_EXPIRE_TIME,
+        }),
+      };
+    } catch {
+      throw new ForbiddenException();
+    }
   }
 }

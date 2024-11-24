@@ -9,6 +9,7 @@ import {
 import { AuthService } from './auth.service';
 import { SignInDto } from './dto/sign-in.dto';
 import { Public } from '../decorators/decorators';
+import { RefreshDto } from './dto/refresh.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -26,5 +27,15 @@ export class AuthController {
   @Post('login')
   signIn(@Body(new ValidationPipe()) signInDto: SignInDto) {
     return this.authService.signIn(signInDto.login, signInDto.password);
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('refresh')
+  refresh(
+    @Body()
+    refreshDto: RefreshDto,
+  ) {
+    return this.authService.refresh(refreshDto.refreshToken);
   }
 }
