@@ -6,7 +6,7 @@ import { join } from 'node:path';
 
 export class LoggingService extends ConsoleLogger {
   async log(message: unknown, context?: unknown) {
-    if (!LOG_LEVELS.includes('log') || context !== 'MIDDLEWARE') return;
+    if (!LOG_LEVELS.includes('log') || context !== 'INTERCEPTOR') return;
 
     const fileName = await this.getFileLogName('log');
 

@@ -28,7 +28,7 @@ export class CustomExceptionFilter implements ExceptionFilter {
 
     this.loggingService.error(
       `
-  ${new Date()}
+${new Date()}
 Request: 
     url: ${request.url} 
     query: ${JSON.stringify(request.query)} 
