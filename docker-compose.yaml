@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres
+    env_file:
+      - .env
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - ./database_data:/var/lib/postgresql/data
+    restart: always
+volumes:
+  database_data:
