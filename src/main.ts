@@ -22,6 +22,14 @@ async function bootstrap() {
 
   SwaggerModule.setup('doc', app, swaggerDocument);
 
+  process.on('uncaughtException', (error) => {
+    loggingService.error(`exception- ${error.message}`);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    loggingService.error(`rejection reason: ${reason}`);
+  });
+
   await app.listen(process.env.PORT);
 }
 bootstrap();
