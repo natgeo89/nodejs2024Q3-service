@@ -22,32 +22,28 @@ npm ci
 ```
 docker-compose up
 ```
-Wait several minutes untill you will see `server-app` logs:
+Wait several minutes untill you will see `dababase logs` logs:
 ```
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/album/:id, PUT} route +1ms
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/album/:id, DELETE} route +2ms
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RoutesResolver] FavoritesController {/favs}: +1ms
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs, GET} route +0ms
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/track/:id, POST} route +1ms
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/track/:id, DELETE} route +1ms        
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/album/:id, POST} route +0ms
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/album/:id, DELETE} route +1ms        
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/artist/:id, POST} route +0ms
-server-app  | [Nest] 123  - 11/18/2024, 4:57:24 PM     LOG [RouterExplorer] Mapped {/favs/artist/:id, DELETE} route +0ms       
-server-app  | [Nest] 123  - 11/18/2024, 4:57:25 PM     LOG [NestApplication] Nest application successfully started +80ms  
+....
+LOG:  database system is ready to accept connections
 ```
 
-## After it successfully install and run all images we can check tests, that should be passed
+## After it successfully install and LOG: `database system is ready to accept connections` we can run server:
 
 ```
-npm run test
+npm run prisma:start:dev
+```
+## Now we can check tests:
+
+```
+npm run test:auth
+```
+```
+npm run test:refresh
 ```
 
 ## Running application
 
-```
-npm start
-```
 
 After starting the app on port (4000 as default) you can open
 in your browser OpenAPI documentation by typing http://localhost:4000/doc/.
